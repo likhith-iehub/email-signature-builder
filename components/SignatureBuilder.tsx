@@ -1,12 +1,17 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { buildSignatureHtmlFragment } from "@/lib/build-signature-html";
 import {
   defaultSignatureConfig,
   type SignatureConfig,
 } from "@/lib/signature-types";
 import { HowToUse } from "@/components/HowToUse";
+import { ProfilePhotoUpload } from "@/components/ProfilePhotoUpload";
+
+/** 1×1 transparent GIF — preview only when no photo yet (never use in pasted email). */
+const PREVIEW_PHOTO_PLACEHOLDER =
+  "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 function previewDoc(fragment: string): string {
   return `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{margin:0;padding:20px;background:#eae6df;font-family:Arial,sans-serif;}</style></head><body>${fragment}</body></html>`;
@@ -100,14 +105,50 @@ const summaryStyle: React.CSSProperties = {
   listStyle: "none",
 };
 
+function usePublicOrigin(): string {
+  const fromEnv = (process.env.NEXT_PUBLIC_SITE_URL || "").trim().replace(/\/$/, "");
+  const [origin, setOrigin] = useState(fromEnv);
+  useEffect(() => {
+    setOrigin(window.location.origin);
+  }, []);
+  return origin;
+}
+
 export function SignatureBuilder() {
+  const publicOrigin = usePublicOrigin();
   const [config, setConfig] = useState<SignatureConfig>(defaultSignatureConfig);
   const [copied, setCopied] = useState(false);
   const [copyError, setCopyError] = useState<string | null>(null);
+  const [uploadHint, setUploadHint] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const fragment = useMemo(() => buildSignatureHtmlFragment(config), [config]);
-  const iframeSrc = useMemo(() => previewDoc(fragment), [fragment]);
+  const previewConfig = useMemo(
+    (): SignatureConfig => ({
+      ...config,
+      photoUrl: config.photoUrl.trim() || PREVIEW_PHOTO_PLACEHOLDER,
+    }),
+    [config],
+  );
+
+  const previewFragment = useMemo(() => {
+    if (!publicOrigin.trim()) return "";
+    return buildSignatureHtmlFragment(previewConfig, { publicOrigin });
+  }, [previewConfig, publicOrigin]);
+
+  const pasteFragment = useMemo(() => {
+    if (!publicOrigin.trim()) return "";
+    return buildSignatureHtmlFragment(config, { publicOrigin });
+  }, [config, publicOrigin]);
+
+  const iframeSrc = useMemo(() => previewDoc(previewFragment), [previewFragment]);
+
+  const canCopy = useMemo(() => {
+    const photo = config.photoUrl.trim();
+    const o = publicOrigin.trim();
+    if (!o.startsWith("http")) return false;
+    if (!photo.startsWith("https://")) return false;
+    return true;
+  }, [config.photoUrl, publicOrigin]);
 
   const set = useCallback(<K extends keyof SignatureConfig>(
     key: K,
@@ -128,8 +169,20 @@ export function SignatureBuilder() {
 
   const copyHtml = useCallback(async () => {
     setCopyError(null);
+    if (!publicOrigin.trim()) {
+      setCopyError("Open this page from its live https address before copying.");
+      return;
+    }
+    if (!config.photoUrl.trim()) {
+      setCopyError("Upload your profile photo first, then copy again.");
+      return;
+    }
+    if (!config.photoUrl.trim().toLowerCase().startsWith("https://")) {
+      setCopyError("Your photo must be an https link. Upload again from this page.");
+      return;
+    }
     try {
-      await navigator.clipboard.writeText(fragment);
+      await navigator.clipboard.writeText(pasteFragment);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -137,7 +190,7 @@ export function SignatureBuilder() {
         "Your browser blocked automatic copy. Use the gray box below: click Select all, then copy.",
       );
     }
-  }, [fragment]);
+  }, [config.photoUrl, pasteFragment, publicOrigin]);
 
   const selectAllHtml = useCallback(() => {
     const el = textareaRef.current;
@@ -150,7 +203,11 @@ export function SignatureBuilder() {
     setConfig(defaultSignatureConfig);
     setCopied(false);
     setCopyError(null);
+    setUploadHint(null);
   }, []);
+
+  const insecureOrigin =
+    publicOrigin.startsWith("http://") && !publicOrigin.includes("localhost");
 
   return (
     <div style={{ maxWidth: 1120, margin: "0 auto", padding: "24px 20px 56px" }}>
@@ -171,16 +228,36 @@ export function SignatureBuilder() {
             margin: 0,
             fontSize: 16,
             color: "var(--muted)",
-            maxWidth: 520,
+            maxWidth: 560,
             marginLeft: "auto",
             marginRight: "auto",
             lineHeight: 1.5,
           }}
         >
-          Make your team signature here. No coding needed—fill in the boxes,
-          copy, and paste into Gmail or Outlook.
+          Upload your headshot here, then copy once and paste into Google
+          Workspace (Gmail) or Outlook. Images use secure links that load in
+          recipients’ inboxes.
         </p>
       </header>
+
+      {insecureOrigin ? (
+        <p
+          style={{
+            background: "#fff7ed",
+            border: "1px solid #fed7aa",
+            borderRadius: 10,
+            padding: "12px 16px",
+            fontSize: 14,
+            color: "#9a3412",
+            marginBottom: 18,
+            lineHeight: 1.5,
+          }}
+        >
+          For signatures that work for everyone reading your email, open this
+          tool on its <strong>https</strong> production link (not a non-local
+          http address), then copy again.
+        </p>
+      ) : null}
 
       <HowToUse />
 
@@ -221,37 +298,75 @@ export function SignatureBuilder() {
                 value={config.jobTitle}
                 onChange={(v) => set("jobTitle", v)}
               />
-              <Field
-                label="Photo link (URL)"
-                value={config.photoUrl}
-                onChange={(v) => set("photoUrl", v)}
-                type="url"
-                hint="Must be an https:// link to a .jpg or .png on the web."
+              <ProfilePhotoUpload
+                onUploaded={(url) => {
+                  setUploadHint(null);
+                  set("photoUrl", url);
+                }}
+                onError={(msg) => setUploadHint(msg)}
               />
+              {uploadHint ? (
+                <p
+                  style={{
+                    margin: "0 0 12px",
+                    fontSize: 13,
+                    color: "#b45309",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {uploadHint}
+                </p>
+              ) : null}
+              {config.photoUrl.trim() ? (
+                <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--muted)" }}>
+                  Photo saved. You can upload again to replace it.
+                </p>
+              ) : null}
               <Field
                 label="Photo description (for accessibility)"
                 value={config.photoAlt}
                 onChange={(v) => set("photoAlt", v)}
-                hint="Usually your full name. Helps screen readers."
+                hint="Usually your full name. Shown to people using screen readers."
               />
+              <details style={{ marginTop: 4, marginBottom: 8 }}>
+                <summary style={{ ...summaryStyle, fontSize: 13, fontWeight: 600 }}>
+                  Advanced: paste image URL instead
+                </summary>
+                <p
+                  style={{
+                    margin: "10px 0 8px",
+                    fontSize: 12,
+                    color: "var(--muted)",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  Only if you already have an <code style={codeInline}>https://</code>{" "}
+                  image link from your company. Must be <strong>https</strong> for Gmail.
+                </p>
+                <Field
+                  label="Image URL (optional)"
+                  value={config.photoUrl}
+                  onChange={(v) => set("photoUrl", v)}
+                  type="url"
+                />
+              </details>
             </div>
           </details>
 
           <details open style={detailsStyle}>
-            <summary style={summaryStyle}>Company logo and links</summary>
-            <div style={{ marginTop: 14 }}>
-              <Field
-                label="Company logo link (URL)"
-                value={config.companyLogoUrl}
-                onChange={(v) => set("companyLogoUrl", v)}
-                type="url"
-              />
-              <Field
-                label="Logo description"
-                value={config.companyLogoAlt}
-                onChange={(v) => set("companyLogoAlt", v)}
-                hint="Usually your company name."
-              />
+            <summary style={summaryStyle}>Company links</summary>
+            <p
+              style={{
+                margin: "0 0 14px",
+                fontSize: 13,
+                color: "var(--muted)",
+                lineHeight: 1.45,
+              }}
+            >
+              The Dynamatix logo is included automatically from this app (no
+              separate image host).
+            </p>
+            <div style={{ marginTop: 0 }}>
               <Field
                 label="Website address (URL)"
                 value={config.websiteUrl}
@@ -340,7 +455,7 @@ export function SignatureBuilder() {
               </div>
             </fieldset>
             <Field
-              label="Brand teal (headings and small icons)"
+              label="Brand teal (headings and bullets)"
               value={config.brandTeal}
               onChange={(v) => set("brandTeal", v)}
               type="color"
@@ -388,9 +503,28 @@ export function SignatureBuilder() {
               marginTop: 4,
             }}
           >
-            <button type="button" onClick={copyHtml} style={btnPrimary}>
-              {copied ? "Copied! You can paste in your email app now." : "Copy signature HTML"}
+            <button
+              type="button"
+              onClick={copyHtml}
+              style={{
+                ...btnPrimary,
+                opacity: canCopy ? 1 : 0.55,
+                cursor: canCopy ? "pointer" : "not-allowed",
+              }}
+              disabled={!canCopy}
+              title={
+                canCopy
+                  ? undefined
+                  : "Upload a profile photo first, then copy."
+              }
+            >
+              {copied ? "Copied! You can paste in Gmail or Outlook now." : "Copy signature HTML"}
             </button>
+            {!canCopy && publicOrigin.trim() ? (
+              <p style={{ margin: 0, fontSize: 12, color: "var(--muted)" }}>
+                Upload a profile photo (https) to enable copying.
+              </p>
+            ) : null}
             <button type="button" onClick={reset} style={btnGhost}>
               Reset form to the sample
             </button>
@@ -434,7 +568,12 @@ export function SignatureBuilder() {
             <textarea
               ref={textareaRef}
               readOnly
-              value={fragment}
+              value={canCopy ? pasteFragment : ""}
+              placeholder={
+                canCopy
+                  ? undefined
+                  : "Your full signature HTML will appear here after you upload a photo."
+              }
               spellCheck={false}
               style={{
                 ...inputStyle,
@@ -449,6 +588,7 @@ export function SignatureBuilder() {
               type="button"
               onClick={selectAllHtml}
               style={{ ...btnGhost, marginTop: 10, width: "100%" }}
+              disabled={!canCopy}
             >
               Select all HTML in the box above
             </button>
@@ -534,4 +674,13 @@ const kbd: React.CSSProperties = {
   borderRadius: 4,
   border: "1px solid #ccc",
   background: "#fafafa",
+};
+
+const codeInline: React.CSSProperties = {
+  fontFamily: "ui-monospace, monospace",
+  fontSize: 12,
+  background: "#fff",
+  padding: "1px 6px",
+  borderRadius: 4,
+  border: "1px solid #ddd",
 };

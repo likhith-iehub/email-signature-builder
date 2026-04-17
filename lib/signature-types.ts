@@ -1,3 +1,7 @@
+/** Served from this app (`/public`) so Gmail/Outlook always get a stable https URL. */
+export const DYNAMATIX_LOGO_PATH = "/dynamatix-logo.png";
+export const DYNAMATIX_LOGO_ALT = "Dynamatix";
+
 export type SignatureConfig = {
   accentBar: {
     teal: string;
@@ -10,8 +14,6 @@ export type SignatureConfig = {
   jobTitle: string;
   photoUrl: string;
   photoAlt: string;
-  companyLogoUrl: string;
-  companyLogoAlt: string;
   websiteUrl: string;
   websiteLabel: string;
   linkedinUrl: string;
@@ -34,11 +36,8 @@ export const defaultSignatureConfig: SignatureConfig = {
   closingLine: "Best regards",
   fullName: "Likhithram",
   jobTitle: "Solution Lead",
-  photoUrl: "https://i.postimg.cc/QCySTsvf/1694447414265.jpg",
-  photoAlt: "Likhithram",
-  companyLogoUrl:
-    "https://i.postimg.cc/85ChB9RX/Gemini-Generated-Image-77jqqg77jqqg77jq.png",
-  companyLogoAlt: "Dynamatix",
+  photoUrl: "",
+  photoAlt: "Profile photo",
   websiteUrl: "https://www.dynamatix.com/",
   websiteLabel: "dynamatix.com",
   linkedinUrl: "https://www.linkedin.com/company/dynamatix",

@@ -1,4 +1,6 @@
-import type { SignatureConfig } from "./signature-types";
+import { absoluteUrl } from "./absolute-url";
+import type { SignatureHtmlOptions } from "./signature-html-options";
+import { DYNAMATIX_LOGO_ALT, DYNAMATIX_LOGO_PATH, type SignatureConfig } from "./signature-types";
 
 function esc(s: string): string {
   return s
@@ -8,13 +10,18 @@ function esc(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-/** Icons8 paths expect lowercase hex without `#`. */
-function iconHex(color: string): string {
-  return color.replace(/^#/, "").toLowerCase();
-}
+/**
+ * Table-only, inline-style HTML for Gmail / Outlook / Google Workspace.
+ * All image `src` values must be absolute https URLs (no relative paths).
+ */
+export function buildSignatureHtmlFragment(
+  c: SignatureConfig,
+  opts: SignatureHtmlOptions,
+): string {
+  const origin = opts.publicOrigin.trim().replace(/\/$/, "");
+  const logoSrc = origin ? esc(absoluteUrl(origin, DYNAMATIX_LOGO_PATH)) : "";
+  const photoSrc = esc((c.photoUrl || "").trim());
 
-/** Table-only, inline-style HTML suitable for Gmail / Outlook pasting. */
-export function buildSignatureHtmlFragment(c: SignatureConfig): string {
   const teal = esc(c.brandTeal);
   const barTeal = esc(c.accentBar.teal);
   const barOrange = esc(c.accentBar.orange);
@@ -36,7 +43,7 @@ export function buildSignatureHtmlFragment(c: SignatureConfig): string {
     <td style="padding:26px 28px 24px 28px;">
       <table cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;"><tr>
         <td width="84" style="vertical-align:middle;padding-right:14px;">
-          <img src="${esc(c.photoUrl)}" alt="${esc(c.photoAlt)}" width="70" height="70" style="display:block;border-radius:50%;border:2px solid ${esc(c.accentBar.orange)};width:70px;height:70px;" />
+          <img src="${photoSrc}" alt="${esc(c.photoAlt)}" width="70" height="70" style="display:block;border-radius:50%;border:2px solid ${barOrange};width:70px;height:70px;" />
         </td>
         <td style="vertical-align:middle;padding-right:16px;">
           <div style="font-size:9px;font-weight:bold;letter-spacing:2px;text-transform:uppercase;color:${teal};margin-bottom:5px;font-family:Arial,sans-serif;white-space:nowrap;">&mdash; ${esc(c.closingLine)}</div>
@@ -45,20 +52,16 @@ export function buildSignatureHtmlFragment(c: SignatureConfig): string {
         </td>
         <td width="1" style="background:#d8d3cc;font-size:0;line-height:0;padding:0;" bgcolor="#d8d3cc">&nbsp;</td>
         <td style="vertical-align:middle;padding-left:16px;">
-          <img src="${esc(c.companyLogoUrl)}" alt="${esc(c.companyLogoAlt)}" width="160" style="display:block;max-width:160px;height:auto;border:0;margin-bottom:10px;" />
+          <img src="${logoSrc}" alt="${esc(DYNAMATIX_LOGO_ALT)}" width="160" height="160" style="display:block;max-width:160px;width:160px;height:auto;border:0;margin-bottom:10px;" />
           <table cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
             <tr>
-              <td style="padding:2px 7px 2px 0;vertical-align:middle;font-size:0;line-height:0;">
-                <img src="https://img.icons8.com/fluency-systems-filled/48/${esc(iconHex(c.brandTeal))}/domain.png" alt="" width="13" height="13" style="display:inline-block;vertical-align:middle;border:0;" />
-              </td>
+              <td style="padding:2px 8px 2px 0;vertical-align:middle;font-size:12px;line-height:1;font-family:Arial,sans-serif;color:${teal};">&#9679;</td>
               <td style="padding:2px 0;font-size:12px;color:#3d3d3f;font-family:Arial,sans-serif;vertical-align:middle;">
                 <a href="${esc(c.websiteUrl)}" style="color:#3d3d3f;text-decoration:none;">${esc(c.websiteLabel)}</a>
               </td>
             </tr>
             <tr>
-              <td style="padding:2px 7px 2px 0;vertical-align:middle;font-size:0;line-height:0;">
-                <img src="https://img.icons8.com/ios-filled/50/${esc(iconHex(c.brandTeal))}/linkedin.png" alt="" width="13" height="13" style="display:inline-block;vertical-align:middle;border:0;" />
-              </td>
+              <td style="padding:2px 8px 2px 0;vertical-align:middle;font-size:12px;line-height:1;font-family:Arial,sans-serif;color:${teal};">&#9679;</td>
               <td style="padding:2px 0;font-size:12px;color:#3d3d3f;font-family:Arial,sans-serif;vertical-align:middle;">
                 <a href="${esc(c.linkedinUrl)}" style="color:#3d3d3f;text-decoration:none;">${esc(c.linkedinLabel)}</a>
               </td>

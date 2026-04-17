@@ -4,7 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Email signature builder",
   description:
-    "Fill in your details and paste a professional HTML email signature into Gmail or Outlook—no coding.",
+    "Upload your photo, copy once, and paste an HTML signature into Google Workspace (Gmail) or Outlook.",
 };
 
 export default function RootLayout({

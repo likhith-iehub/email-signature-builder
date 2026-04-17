@@ -21,25 +21,23 @@ export function HowToUse() {
       </strong>
       <ol style={{ ...ol, listStyleType: "decimal" }}>
         <li style={{ marginBottom: 6 }}>
-          Fill in your name, job title, and photo link. Your IT or marketing
-          team can give you the correct logo and website links if you are
-          unsure.
+          Fill in your name and title, then use <strong>Upload photo from this computer</strong>{" "}
+          for your headshot (JPG or PNG). You do not need another website for that step.
         </li>
         <li style={{ marginBottom: 6 }}>
-          Click <strong>Copy signature HTML</strong> when the preview on the
-          right looks correct.
+          Click <strong>Copy signature HTML</strong> when the preview looks right.
         </li>
-        <li>Paste the signature into your email app using the steps below.</li>
+        <li>Paste into Gmail or Outlook using the steps below.</li>
       </ol>
 
       <p style={{ margin: "14px 0 6px", fontWeight: 700, fontSize: 13 }}>
-        Gmail (web)
+        Gmail / Google Workspace (web)
       </p>
       <ol style={{ ...ol, listStyleType: "decimal", fontSize: 13 }}>
-        <li>Open Gmail and click the gear icon → See all settings.</li>
+        <li>Open Gmail → Settings (gear) → See all settings.</li>
         <li>Under General, find Signature.</li>
         <li>
-          Create or select a signature, click in the editor, then paste (
+          Click in the signature box, then paste (
           <kbd style={kbd}>Ctrl</kbd> + <kbd style={kbd}>V</kbd> on Windows,{" "}
           <kbd style={kbd}>⌘</kbd> + <kbd style={kbd}>V</kbd> on Mac).
         </li>
@@ -51,19 +49,17 @@ export function HowToUse() {
       </p>
       <ol style={{ ...ol, listStyleType: "decimal", fontSize: 13 }}>
         <li>
-          Click the gear → View all Outlook settings → Mail → Compose and
-          reply.
+          Settings → View all Outlook settings → Mail → Compose and reply.
         </li>
-        <li>Under Email signature, paste into the box.</li>
-        <li>Save.</li>
+        <li>Under Email signature, paste into the box and save.</li>
       </ol>
 
-      <p style={{ margin: "14px 0 0", fontSize: 12, color: "var(--muted)" }}>
-        <strong>Photo link:</strong> The address must start with{" "}
-        <code style={code}>https://</code> and point to a picture already on the
-        internet (for example a link from your company or from an image host).
-        If you only have a file on your computer, ask a colleague to upload it
-        and send you the link.
+      <p style={{ margin: "14px 0 0", fontSize: 12, color: "var(--muted)", lineHeight: 1.55 }}>
+        <strong>Images in Gmail:</strong> If photos look hidden at first, choose{" "}
+        <strong>Always display images from this sender</strong> (or enable images in Gmail
+        settings). Your company logo loads from this tool’s site; your headshot loads from
+        secure storage—both use normal <code style={code}>https://</code> links, which Google
+        Workspace and Outlook support.
       </p>
     </div>
   );
