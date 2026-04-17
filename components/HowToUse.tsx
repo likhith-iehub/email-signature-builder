@@ -1,4 +1,6 @@
-const box: React.CSSProperties = {
+import type { CSSProperties } from "react";
+
+const box: CSSProperties = {
   background: "#f0ebe3",
   border: "1px solid var(--border)",
   borderRadius: 12,
@@ -7,7 +9,7 @@ const box: React.CSSProperties = {
   fontSize: 14,
 };
 
-const ol: React.CSSProperties = {
+const ol: CSSProperties = {
   margin: "10px 0 0",
   paddingLeft: 22,
   lineHeight: 1.55,
@@ -65,7 +67,7 @@ export function HowToUse() {
   );
 }
 
-const kbd: React.CSSProperties = {
+const kbd: CSSProperties = {
   fontFamily: "ui-monospace, monospace",
   fontSize: 12,
   padding: "2px 6px",
@@ -74,7 +76,7 @@ const kbd: React.CSSProperties = {
   background: "#fff",
 };
 
-const code: React.CSSProperties = {
+const code: CSSProperties = {
   fontFamily: "ui-monospace, monospace",
   fontSize: 12,
   background: "#fff",

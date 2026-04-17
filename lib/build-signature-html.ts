@@ -1,6 +1,13 @@
 import { absoluteUrl } from "./absolute-url";
-import type { SignatureHtmlOptions } from "./signature-html-options";
-import { DYNAMATIX_LOGO_ALT, DYNAMATIX_LOGO_PATH, type SignatureConfig } from "./signature-types";
+import {
+  DYNAMATIX_LOGO_ALT,
+  DYNAMATIX_LOGO_PATH,
+  type SignatureConfig,
+} from "./signature-types";
+
+export type SignatureHtmlOptions = {
+  publicOrigin: string;
+};
 
 function esc(s: string): string {
   return s

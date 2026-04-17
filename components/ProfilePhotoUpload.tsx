@@ -1,10 +1,29 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import {
+  useCallback,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type CSSProperties,
+} from "react";
 
 type Props = {
   onUploaded: (httpsUrl: string) => void;
-  onError: (message: string) => void;
+  /** Pass `null` to clear a previous error message. */
+  onError: (message: string | null) => void;
+};
+
+const btn: CSSProperties = {
+  width: "100%",
+  padding: "12px 14px",
+  borderRadius: 8,
+  border: "1px solid var(--border)",
+  background: "#fff",
+  fontWeight: 600,
+  fontSize: 14,
+  fontFamily: "inherit",
+  color: "var(--ink)",
 };
 
 export function ProfilePhotoUpload({ onUploaded, onError }: Props) {
@@ -16,10 +35,10 @@ export function ProfilePhotoUpload({ onUploaded, onError }: Props) {
   }, []);
 
   const onChange = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
       e.target.value = "";
-      onError("");
+      onError(null);
       if (!file) return;
 
       if (!["image/jpeg", "image/png"].includes(file.type)) {
@@ -92,15 +111,3 @@ export function ProfilePhotoUpload({ onUploaded, onError }: Props) {
     </div>
   );
 }
-
-const btn: React.CSSProperties = {
-  width: "100%",
-  padding: "12px 14px",
-  borderRadius: 8,
-  border: "1px solid var(--border)",
-  background: "#fff",
-  fontWeight: 600,
-  fontSize: 14,
-  fontFamily: "inherit",
-  color: "var(--ink)",
-};

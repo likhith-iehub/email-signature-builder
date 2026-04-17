@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { buildSignatureHtmlFragment } from "@/lib/build-signature-html";
 import {
   defaultSignatureConfig,
@@ -80,7 +87,7 @@ function Field({ label, value, onChange, type = "text", rows, hint }: FieldProps
   );
 }
 
-const inputStyle: React.CSSProperties = {
+const inputStyle: CSSProperties = {
   width: "100%",
   padding: "10px 12px",
   borderRadius: 8,
@@ -90,7 +97,7 @@ const inputStyle: React.CSSProperties = {
   fontFamily: "inherit",
 };
 
-const detailsStyle: React.CSSProperties = {
+const detailsStyle: CSSProperties = {
   border: "1px solid var(--border)",
   borderRadius: 10,
   padding: "12px 14px",
@@ -98,7 +105,7 @@ const detailsStyle: React.CSSProperties = {
   background: "#fff",
 };
 
-const summaryStyle: React.CSSProperties = {
+const summaryStyle: CSSProperties = {
   fontWeight: 700,
   fontSize: 14,
   cursor: "pointer",
@@ -114,7 +121,7 @@ function usePublicOrigin(): string {
   return origin;
 }
 
-export function SignatureBuilder() {
+export default function SignatureBuilder() {
   const publicOrigin = usePublicOrigin();
   const [config, setConfig] = useState<SignatureConfig>(defaultSignatureConfig);
   const [copied, setCopied] = useState(false);
@@ -644,7 +651,7 @@ export function SignatureBuilder() {
   );
 }
 
-const btnPrimary: React.CSSProperties = {
+const btnPrimary: CSSProperties = {
   cursor: "pointer",
   border: "none",
   borderRadius: 10,
@@ -656,7 +663,7 @@ const btnPrimary: React.CSSProperties = {
   width: "100%",
 };
 
-const btnGhost: React.CSSProperties = {
+const btnGhost: CSSProperties = {
   cursor: "pointer",
   border: "1px solid var(--border)",
   borderRadius: 8,
@@ -667,7 +674,7 @@ const btnGhost: React.CSSProperties = {
   color: "var(--ink)",
 };
 
-const kbd: React.CSSProperties = {
+const kbd: CSSProperties = {
   fontFamily: "ui-monospace, monospace",
   fontSize: 12,
   padding: "2px 6px",
@@ -676,7 +683,7 @@ const kbd: React.CSSProperties = {
   background: "#fafafa",
 };
 
-const codeInline: React.CSSProperties = {
+const codeInline: CSSProperties = {
   fontFamily: "ui-monospace, monospace",
   fontSize: 12,
   background: "#fff",
